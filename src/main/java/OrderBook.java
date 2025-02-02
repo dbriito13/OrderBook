@@ -15,10 +15,10 @@ public class OrderBook {
 
     public void addOrder(OrderBookEntry entry){
         if(entry.isBid()){
-            matchOrder(entry, bidBook);
+            matchOrder(entry, askBook);
             if (!entry.isFilled()) bidBook.add(entry);
         }else if(entry.isAsk()){
-            matchOrder(entry, askBook);
+            matchOrder(entry, bidBook);
             if (!entry.isFilled()) askBook.add(entry);
         }
     }
@@ -44,6 +44,8 @@ public class OrderBook {
         }
     }
 
-
-
+    @Override
+    public String toString() {
+        return "Bids: " + bidBook.toString() + "Asks:" + askBook.toString();
+    }
 }

@@ -13,12 +13,22 @@
 
     <!-- Dependencies -->
     <dependencies>
-        <!-- Lombok dependency -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.24</version> <!-- Latest version -->
+            <version>1.18.30</version> <!-- Latest version -->
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>2.0.7</version>
+            <scope>test</scope>
         </dependency>
 
         <!-- JUnit for testing (optional) -->
@@ -35,6 +45,19 @@
             <version>5.8.1</version> <!-- Latest version -->
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <version>1.37</version> <!-- Choose the latest stable version -->
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-generator-annprocess</artifactId>
+            <version>1.37</version> <!-- Choose the latest stable version -->
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <!-- Build configuration -->
