@@ -5,42 +5,43 @@ import java.util.*;
 @Getter
 public class OrderBook {
 
-    private final PriorityQueue<OrderBookEntry> bidBook; // Highest Prices first
-    private final PriorityQueue<OrderBookEntry> askBook; // Lowest Prices first
+    private final TreeSet<PriceLevel> bidBook; // Highest Prices first
+    private final TreeSet<PriceLevel> askBook; // Lowest Prices first
 
     public OrderBook() {
-        this.bidBook = new PriorityQueue<>(Comparator.comparing(OrderBookEntry::getPrice).reversed());
-        this.askBook = new PriorityQueue<>(Comparator.comparing(OrderBookEntry::getPrice));
+        this.bidBook = new TreeSet<>(Comparator.reverseOrder());
+        this.askBook = new TreeSet<>();
     }
 
     public void addOrder(OrderBookEntry entry){
-        if(entry.isBid()){
-            matchOrder(entry, askBook);
-            if (!entry.isFilled()) bidBook.add(entry);
-        }else if(entry.isAsk()){
-            matchOrder(entry, bidBook);
-            if (!entry.isFilled()) askBook.add(entry);
+        matchOrder(entry, entry.isBid() ? askBook: bidBook);
+        if (!entry.isFilled()){
+            PriceLevel level = new PriceLevel(entry);
+            TreeSet<PriceLevel> book = entry.isBid()? bidBook: askBook;
+            if (book.contains(level)){
+                Objects.requireNonNull(book.floor(level)).addOrder(entry);
+            } else {
+                // Add new PriceLevel to corresponding book
+                book.add(level);
+            }
         }
     }
 
-    private void matchOrder(OrderBookEntry entry, PriorityQueue<OrderBookEntry> oppositeBook){
+    private void matchOrder(OrderBookEntry entry, TreeSet<PriceLevel> oppositeBook){
         //FIFO
         while (!oppositeBook.isEmpty() && entry.getQuantity() > 0){
-            // Get First order in book
-            OrderBookEntry topOrder = oppositeBook.peek();
-            // Check if prices match
-            if (entry.isBid() && entry.getPrice() >= topOrder.getPrice() ||
-                entry.isAsk() && entry.getPrice() <= topOrder.getPrice()){
-                // Start matching
-                double matchQuantity = Math.min(entry.getQuantity(), topOrder.getQuantity());
-                entry.reduceQuantity(matchQuantity);
-                topOrder.reduceQuantity(matchQuantity);
-                //Remove topOrder if fully matched
-                if(topOrder.isFilled()) oppositeBook.poll();
-            }
-            else { // No further orders will be matched
+            // Get First Price Level in book
+            PriceLevel topLevel = oppositeBook.first();
+            // Check if prices don't match
+            if (entry.isBid() && entry.getPrice() < topLevel.getLevelPrice() ||
+                entry.isAsk() && entry.getPrice() > topLevel.getLevelPrice()) {
                 break;
             }
+                // Reduce both incoming entry and available price level by matching amount
+                topLevel.reduceQuantity(entry);
+
+                //Remove level if fully matched
+                if(topLevel.isEmpty()) oppositeBook.pollFirst();
         }
     }
 
