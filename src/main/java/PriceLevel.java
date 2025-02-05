@@ -2,6 +2,7 @@ import lombok.Getter;
 
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.Objects;
 
 @Getter
 public class PriceLevel implements Comparable<PriceLevel>{
@@ -18,13 +19,11 @@ public class PriceLevel implements Comparable<PriceLevel>{
     }
 
     public Side getLevellSide(){
-        assert orders.peek() != null;
-        return orders.peek().getSide();
+        return Objects.requireNonNull(orders.peek()).getSide();
     }
 
     public double getLevelPrice(){
-        assert orders.peek() != null;
-        return orders.peek().getPrice();
+        return Objects.requireNonNull(orders.peek()).getPrice();
     }
 
     public boolean isEmpty(){

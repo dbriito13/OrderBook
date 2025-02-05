@@ -14,13 +14,15 @@ public class OrderBookEntry {
     private final OrderType orderType;
     private final Side side;
     private final LocalDateTime timestamp;
+    //TODO: Add reference to PriceLevel to avoid TreeSet lookups with deletions
+    private PriceLevel priceLevel;
 
-    public OrderBookEntry(String symbol, Double price, Double quantity, Side side) {
+    public OrderBookEntry(String symbol, Double price, Double quantity, Side side, OrderType orderType) {
         this.symbol = symbol;
         this.quantity = quantity;
         this.price = price;
         this.side = side;
-        this.orderType = OrderType.MARKET;
+        this.orderType = orderType;
         this.timestamp = LocalDateTime.now();
     }
 
