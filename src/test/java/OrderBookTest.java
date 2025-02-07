@@ -61,6 +61,19 @@ class OrderBookTest {
         assertTrue(marketOrder.isFilled());
     }
 
+    @Test
+    public void testCancelOrder() {
+        OrderBookEntry order = new OrderBookEntry(100.0, 10.0, Side.BUY, OrderType.LIMIT);
+        orderBook.addOrder(order);
+
+        assertTrue(orderBook.getBidBook().first().getOrders().contains(order));
+
+        // Cancel order
+        orderBook.cancelOrder(order.getOrderId());
+
+        assertTrue(orderBook.getBidBook().isEmpty());
+    }
+
     private void logGCStats() {
         System.out.println("GC Stats at the end of the test:");
         for (GarbageCollectorMXBean gcBean : ManagementFactory.getGarbageCollectorMXBeans()) {

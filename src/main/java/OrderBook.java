@@ -33,13 +33,15 @@ public class OrderBook {
         }
     }
 
-    private void cancelOrder(UUID id){
+    public void cancelOrder(UUID id){
         OrderBookEntry removedOrder = orderMap.remove(id);
         if (removedOrder != null){
-            removedOrder.getPriceLevel().removeOrder(removedOrder);
-            if (removedOrder.getPriceLevel().isEmpty()){
+            PriceLevel level = removedOrder.getPriceLevel();
+            if (level.orders.size()==1){
                 TreeSet<PriceLevel> book = removedOrder.isBid() ? bidBook : askBook;
-                book.remove(removedOrder.getPriceLevel());
+                book.remove(level);
+            } else {
+                removedOrder.getPriceLevel().removeOrder(removedOrder);
             }
         }
     }
@@ -51,8 +53,8 @@ public class OrderBook {
                 // Get First Price Level in book
                 PriceLevel topLevel = oppositeBook.first();
                 // Check if prices don't match
-                if (entry.isBid() && entry.getPrice() < topLevel.getLevelPrice() ||
-                    entry.isAsk() && entry.getPrice() > topLevel.getLevelPrice()) {
+                if (entry.isBid() && entry.getPrice() < topLevel.getPrice() ||
+                    entry.isAsk() && entry.getPrice() > topLevel.getPrice()) {
                     break;
                 }
                 // Reduce both incoming entry and available price level by matching amount

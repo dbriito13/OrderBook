@@ -7,7 +7,6 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@ToString
 public class OrderBookEntry {
     private final Double price;
     private Double quantity; // quantity can't be final as it will be reduced when matching algorithm works
