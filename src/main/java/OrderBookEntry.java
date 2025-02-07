@@ -3,6 +3,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -15,6 +16,7 @@ public class OrderBookEntry {
     private final LocalDateTime timestamp;
     //TODO: Add reference to PriceLevel to avoid TreeSet lookups with deletions
     private PriceLevel priceLevel;
+    private UUID orderId;
 
     public OrderBookEntry(Double price, Double quantity, Side side, OrderType orderType) {
         this.quantity = quantity;
@@ -22,6 +24,7 @@ public class OrderBookEntry {
         this.side = side;
         this.orderType = orderType;
         this.timestamp = LocalDateTime.now();
+        this.orderId = UUID.randomUUID();
     }
 
     public boolean isBid(){

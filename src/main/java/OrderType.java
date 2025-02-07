@@ -1,6 +1,6 @@
 public enum OrderType {
     LIMIT,
     MARKET,
-    STOP,
+    DELETE,
     MODIFY
 }

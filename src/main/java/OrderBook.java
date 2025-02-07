@@ -7,10 +7,13 @@ public class OrderBook {
 
     private final TreeSet<PriceLevel> bidBook; // Highest Prices first
     private final TreeSet<PriceLevel> askBook; // Lowest Prices first
+    private final Map<UUID, OrderBookEntry> orderMap;
+
 
     public OrderBook() {
         this.bidBook = new TreeSet<>(Comparator.reverseOrder());
         this.askBook = new TreeSet<>();
+        this.orderMap = new HashMap<>();
     }
 
     public void addOrder(OrderBookEntry entry){
@@ -21,9 +24,22 @@ public class OrderBook {
             PriceLevel existingLevel = book.floor(new PriceLevel(entry));
             if (existingLevel != null){
                 Objects.requireNonNull(existingLevel).addOrder(entry);
+                orderMap.put(entry.getOrderId(), entry);
             } else {
                 // Add new PriceLevel to corresponding book
                 book.add(level);
+                orderMap.put(entry.getOrderId(), entry);
+            }
+        }
+    }
+
+    private void cancelOrder(UUID id){
+        OrderBookEntry removedOrder = orderMap.remove(id);
+        if (removedOrder != null){
+            removedOrder.getPriceLevel().removeOrder(removedOrder);
+            if (removedOrder.getPriceLevel().isEmpty()){
+                TreeSet<PriceLevel> book = removedOrder.isBid() ? bidBook : askBook;
+                book.remove(removedOrder.getPriceLevel());
             }
         }
     }

@@ -1,8 +1,6 @@
 import lombok.Getter;
 
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.Objects;
+import java.util.*;
 
 @Getter
 public class PriceLevel implements Comparable<PriceLevel>{
@@ -16,6 +14,10 @@ public class PriceLevel implements Comparable<PriceLevel>{
 
     public void addOrder(OrderBookEntry entry){
         orders.add(entry);
+    }
+
+    public void removeOrder(OrderBookEntry entry){
+        orders.remove(entry);
     }
 
     public Side getLevellSide(){
