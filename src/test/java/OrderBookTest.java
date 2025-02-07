@@ -18,8 +18,8 @@ class OrderBookTest {
 
     @Test
     void testBuyOrderMatchingSellOrder(){
-        OrderBookEntry sellOrder = new OrderBookEntry("A", 100.0, 10.0, Side.SELL, OrderType.MARKET);
-        OrderBookEntry buyOrder = new OrderBookEntry("A", 100.0, 10.0, Side.BUY, OrderType.MARKET);
+        OrderBookEntry sellOrder = new OrderBookEntry(100.0, 10.0, Side.SELL, OrderType.LIMIT);
+        OrderBookEntry buyOrder = new OrderBookEntry( 100.0, 10.0, Side.BUY, OrderType.LIMIT);
         orderBook.addOrder(sellOrder);
         orderBook.addOrder(buyOrder);
 
@@ -31,11 +31,11 @@ class OrderBookTest {
     void testHighLoadMatchingPerformance(){
         long startTime = System.nanoTime();
         for(int i = 1; i <= NUM_ORDERS; i++){
-            OrderBookEntry sellOrder = new OrderBookEntry("A", 100.0, 1.0, Side.BUY, OrderType.MARKET);
+            OrderBookEntry sellOrder = new OrderBookEntry( 100.0, 1.0, Side.BUY, OrderType.LIMIT);
             orderBook.addOrder(sellOrder); // Prices vary between 100-109
         }
         for(int i = 1; i <= NUM_ORDERS; i++){
-            OrderBookEntry buyOrder = new OrderBookEntry("A", 100.0, 1.0, Side.SELL, OrderType.MARKET);
+            OrderBookEntry buyOrder = new OrderBookEntry( 100.0, 1.0, Side.SELL, OrderType.LIMIT);
             orderBook.addOrder(buyOrder); // Prices vary between 100-109
         }
         long durationMs = (System.nanoTime() - startTime) / 1_000_000;
@@ -47,6 +47,18 @@ class OrderBookTest {
 
         // Log GC statistics after the test
         logGCStats();
+    }
+
+    @Test
+    public void testMarketOrderMatching(){
+        orderBook.addOrder(new OrderBookEntry( 100.0, 10.0, Side.SELL, OrderType.LIMIT));
+        orderBook.addOrder(new OrderBookEntry( 110.0, 10.0, Side.SELL, OrderType.LIMIT));
+
+        OrderBookEntry marketOrder = new OrderBookEntry( 0.0, 10.0, Side.BUY, OrderType.MARKET);
+        orderBook.addOrder(marketOrder);
+
+        assertEquals(1, orderBook.getAskBook().size());
+        assertTrue(marketOrder.isFilled());
     }
 
     private void logGCStats() {

@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 @Setter
 @ToString
 public class OrderBookEntry {
-    private final String symbol;
     private final Double price;
     private Double quantity; // quantity can't be final as it will be reduced when matching algorithm works
     private final OrderType orderType;
@@ -17,8 +16,7 @@ public class OrderBookEntry {
     //TODO: Add reference to PriceLevel to avoid TreeSet lookups with deletions
     private PriceLevel priceLevel;
 
-    public OrderBookEntry(String symbol, Double price, Double quantity, Side side, OrderType orderType) {
-        this.symbol = symbol;
+    public OrderBookEntry(Double price, Double quantity, Side side, OrderType orderType) {
         this.quantity = quantity;
         this.price = price;
         this.side = side;
