@@ -23,8 +23,9 @@ public class PriceLevel implements Comparable<PriceLevel>{
         orders.remove(entry);
     }
 
-    public Side getLevellSide(){
-        return Objects.requireNonNull(orders.peek()).getSide();
+    public void reset(OrderBookEntry entry){
+        orders.clear();
+        orders.add(entry);
     }
 
     public double getPrice(){
@@ -47,17 +48,6 @@ public class PriceLevel implements Comparable<PriceLevel>{
 
     @Override
     public int compareTo(PriceLevel other){
-        if (this.isEmpty() && other.isEmpty()) {
-            System.out.println("HOLA");
-            return 0;
-        }
-        if (this.isEmpty()){
-            System.out.println("HOLA");
-            return -1;
-        }
-        if (other.isEmpty()){
-            return 1;
-        }
         return Double.compare(this.getPrice(), other.getPrice());
     }
 
