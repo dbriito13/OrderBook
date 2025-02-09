@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import java.lang.management.*;
 import java.util.ArrayList;
@@ -98,9 +97,9 @@ class OrderBookTest {
     private List<GCStats> getGCStats() {
         List<GCStats> gcStatsList = new ArrayList<>();
         ManagementFactory.getGarbageCollectorMXBeans()
-                .forEach(gc -> {
-                    gcStatsList.add(new GCStats(gc.getName(), gc.getCollectionCount(), gc.getCollectionTime()));
-                });
+                .forEach(gc ->
+                    gcStatsList.add(new GCStats(gc.getName(), gc.getCollectionCount(), gc.getCollectionTime()))
+                );
         return gcStatsList;
     }
 

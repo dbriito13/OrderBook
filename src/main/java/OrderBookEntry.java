@@ -1,6 +1,6 @@
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
+
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -13,7 +13,6 @@ public class OrderBookEntry {
     private OrderType orderType;
     private Side side;
     private final LocalDateTime timestamp;
-    //TODO: Add reference to PriceLevel to avoid TreeSet lookups with deletions
     private PriceLevel priceLevel;
     private UUID orderId;
 

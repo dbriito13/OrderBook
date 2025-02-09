@@ -1,6 +1,5 @@
 import java.util.ArrayDeque;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class OrderBookEntryPool {
     private static final Queue<OrderBookEntry> pool = new ArrayDeque<>();
