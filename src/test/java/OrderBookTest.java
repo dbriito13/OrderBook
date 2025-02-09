@@ -1,8 +1,16 @@
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import java.lang.management.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -11,6 +19,15 @@ class OrderBookTest {
     private OrderBook orderBook;
     private static final int NUM_ORDERS = 1_000_000; // Large order set
 
+    @AllArgsConstructor
+    @Getter
+    @ToString
+    private class GCStats {
+        String GCName;
+        long GCCount;
+        long GCTime;
+    }
+
     @BeforeEach
     void setUp(){
         orderBook = new OrderBook();
@@ -18,10 +35,8 @@ class OrderBookTest {
 
     @Test
     void testBuyOrderMatchingSellOrder(){
-        OrderBookEntry sellOrder = new OrderBookEntry(100.0, 10.0, Side.SELL, OrderType.LIMIT);
-        OrderBookEntry buyOrder = new OrderBookEntry( 100.0, 10.0, Side.BUY, OrderType.LIMIT);
-        orderBook.addOrder(sellOrder);
-        orderBook.addOrder(buyOrder);
+        orderBook.addOrder(100.0, 10.0, Side.SELL, OrderType.LIMIT);
+        orderBook.addOrder(100.0, 10.0, Side.BUY, OrderType.LIMIT);
 
         assertTrue(orderBook.getBidBook().isEmpty());
         assertTrue(orderBook.getAskBook().isEmpty());
@@ -29,16 +44,20 @@ class OrderBookTest {
 
     @Test
     void testHighLoadMatchingPerformance(){
+        //Prefill the PriceLevel and OrderBookEntry pools
+        orderBook.prefillPriceLevelPool(1_000_000);
+        OrderBookEntryPool.prefillPool(1_000_000);
+        List<GCStats> gcStatsBefore = getGCStats();
+        System.out.println(gcStatsBefore);
         long startTime = System.nanoTime();
         for(int i = 1; i <= NUM_ORDERS; i++){
-            OrderBookEntry sellOrder = OrderBookEntryPool.get( 100.0, 1.0, Side.BUY, OrderType.LIMIT);
-            orderBook.addOrder(sellOrder); // Prices vary between 100-109
+            orderBook.addOrder(100.0, 1.0, Side.BUY, OrderType.LIMIT); // Prices vary between 100-109
         }
         for(int i = 1; i <= NUM_ORDERS; i++){
-            OrderBookEntry buyOrder = OrderBookEntryPool.get( 100.0, 1.0, Side.SELL, OrderType.LIMIT);
-            orderBook.addOrder(buyOrder); // Prices vary between 100-109
+            orderBook.addOrder(100.0, 1.0, Side.SELL, OrderType.LIMIT); // Prices vary between 100-109
         }
         long durationMs = (System.nanoTime() - startTime) / 1_000_000;
+        List<GCStats> gcStatsAfter = getGCStats();
 
         log.info("Matching 100000 Symmetric orders took: {}ms", durationMs);
         //log.info(String.valueOf(orderBook));
@@ -46,27 +65,29 @@ class OrderBookTest {
         assertTrue(orderBook.getAskBook().isEmpty());
 
         // Log GC statistics after the test
-        logGCStats();
+        printGCStats(gcStatsBefore, gcStatsAfter);
     }
 
     @Test
     public void testMarketOrderMatching(){
-        orderBook.addOrder(new OrderBookEntry( 100.0, 10.0, Side.SELL, OrderType.LIMIT));
-        orderBook.addOrder(new OrderBookEntry( 110.0, 10.0, Side.SELL, OrderType.LIMIT));
+        orderBook.addOrder( 100.0, 10.0, Side.SELL, OrderType.LIMIT);
+        orderBook.addOrder( 110.0, 10.0, Side.SELL, OrderType.LIMIT);
 
-        OrderBookEntry marketOrder = new OrderBookEntry( 0.0, 10.0, Side.BUY, OrderType.MARKET);
-        orderBook.addOrder(marketOrder);
+        orderBook.addOrder(0.0, 10.0, Side.BUY, OrderType.MARKET);
 
         assertEquals(1, orderBook.getAskBook().size());
-        assertTrue(marketOrder.isFilled());
+        assertTrue(orderBook.getBidBook().isEmpty());
     }
 
     @Test
     public void testCancelOrder() {
-        OrderBookEntry order = new OrderBookEntry(100.0, 10.0, Side.BUY, OrderType.LIMIT);
-        orderBook.addOrder(order);
+        orderBook.addOrder(100.0, 10.0, Side.BUY, OrderType.LIMIT);
 
-        assertTrue(orderBook.getBidBook().first().getOrders().contains(order));
+        OrderBookEntry order = orderBook.getBidBook().first().getOrders().getFirst();
+        assertEquals(10.0, order.getQuantity());
+        assertEquals(100.0, order.getPrice());
+        assertEquals(Side.BUY, order.getSide());
+        assertEquals(OrderType.LIMIT, order.getOrderType());
 
         // Cancel order
         orderBook.cancelOrder(order.getOrderId());
@@ -74,12 +95,28 @@ class OrderBookTest {
         assertTrue(orderBook.getBidBook().isEmpty());
     }
 
-    private void logGCStats() {
-        System.out.println("GC Stats at the end of the test:");
-        for (GarbageCollectorMXBean gcBean : ManagementFactory.getGarbageCollectorMXBeans()) {
-            System.out.println("GC Name: " + gcBean.getName());
-            System.out.println("GC Collection Count: " + gcBean.getCollectionCount());
-            System.out.println("GC Collection Time: " + gcBean.getCollectionTime() + " ms");
+    private List<GCStats> getGCStats() {
+        List<GCStats> gcStatsList = new ArrayList<>();
+        ManagementFactory.getGarbageCollectorMXBeans()
+                .forEach(gc -> {
+                    gcStatsList.add(new GCStats(gc.getName(), gc.getCollectionCount(), gc.getCollectionTime()));
+                });
+        return gcStatsList;
+    }
+
+    private void printGCStats(List<GCStats> before, List<GCStats> after){
+        Map<String, GCStats> startMap = before.stream()
+                .collect(Collectors.toMap(GCStats::getGCName, s -> s));
+
+        log.info("GC Stats Difference:");
+        for (GCStats endStat : after) {
+            GCStats startStat = startMap.get(endStat.getGCName());
+
+            long countDiff = endStat.getGCCount() - (startStat != null ? startStat.getGCCount() : 0);
+            long timeDiff = endStat.getGCTime() - (startStat != null ? startStat.getGCTime() : 0);
+
+            log.info("GC Name: {}, Count Diff: {}, Time Diff (ms): {}",
+                    endStat.getGCName(), countDiff, timeDiff);
         }
     }
 }

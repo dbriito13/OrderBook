@@ -42,7 +42,10 @@ public class PriceLevel implements Comparable<PriceLevel>{
             double matchQuantity = Math.min(matchEntry.getQuantity(), order.getQuantity());
             order.reduceQuantity(matchQuantity);
             matchEntry.reduceQuantity(matchQuantity);
-            if (order.isFilled()) orders.poll();
+            if (order.isFilled()) {
+                orders.poll();
+                OrderBookEntryPool.release(order);
+            }
         }
     }
 

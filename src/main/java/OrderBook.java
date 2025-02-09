@@ -28,7 +28,16 @@ public class OrderBook {
         return priceLevel;
     }
 
-    public void addOrder(OrderBookEntry entry){
+
+    public void prefillPriceLevelPool(int num){
+        for(int i = 0; i < num; i++){
+            PriceLevel level = new PriceLevel(new OrderBookEntry(1.0, 1.0, Side.SELL, OrderType.LIMIT));
+            priceLevelPool.offer(level);
+        }
+    }
+
+    public void addOrder(double price, double quantity, Side side, OrderType orderType){
+        OrderBookEntry entry = OrderBookEntryPool.get(price, quantity, side, orderType);
         matchOrder(entry, entry.isBid() ? askBook: bidBook);
         if (!entry.isFilled() && entry.getOrderType().equals(OrderType.LIMIT)){
             PriceLevel level = getPriceLevelFromPool(entry);
@@ -43,8 +52,10 @@ public class OrderBook {
                 book.add(level);
                 orderMap.put(entry.getOrderId(), entry);
             }
+        } else if (entry.isFilled()){
+            // Release filled orderbookentry object back to pool
+            OrderBookEntryPool.release(entry);
         }
-
     }
 
     public void cancelOrder(UUID id){
@@ -58,6 +69,7 @@ public class OrderBook {
             } else {
                 removedOrder.getPriceLevel().removeOrder(removedOrder);
             }
+            OrderBookEntryPool.release(removedOrder);
         }
     }
 
