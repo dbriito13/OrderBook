@@ -30,6 +30,7 @@ public class OrderBookEntry {
         this.quantity = quantity;
         this.side = side;
         this.orderType = orderType;
+        this.orderId = UUID.randomUUID();
     }
 
     public boolean isBid(){

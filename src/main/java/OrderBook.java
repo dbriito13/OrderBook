@@ -1,4 +1,5 @@
 import lombok.Getter;
+import sun.reflect.generics.tree.Tree;
 
 import java.util.*;
 
@@ -38,6 +39,10 @@ public class OrderBook {
 
     public void addOrder(double price, double quantity, Side side, OrderType orderType){
         OrderBookEntry entry = OrderBookEntryPool.get(price, quantity, side, orderType);
+        matchAndAdd(entry);
+    }
+
+    private void matchAndAdd(OrderBookEntry entry){
         matchOrder(entry, entry.isBid() ? askBook: bidBook);
         if (!entry.isFilled() && entry.getOrderType().equals(OrderType.LIMIT)){
             PriceLevel level = getPriceLevelFromPool(entry);
@@ -57,6 +62,32 @@ public class OrderBook {
             OrderBookEntryPool.release(entry);
         }
     }
+
+    private void modifyOrder(UUID id, double newQuantity, double newPrice){
+        OrderBookEntry entry = orderMap.get(id);
+        if (entry == null) return;
+        TreeSet<PriceLevel> book = entry.isBid() ? bidBook : askBook;
+
+        if (entry.getPrice() == newPrice){
+            // No need to remove entry from PriceLevel
+            entry.setQuantity(newQuantity);
+        } else {
+            // Price changed, need to move from PriceLevel
+            PriceLevel priceLevel = entry.getPriceLevel();
+            if (priceLevel.orders.size() == 1){
+                // Remove pricelevel
+                book.remove(priceLevel);
+                priceLevelPool.offer(priceLevel);
+            } else {
+                priceLevel.removeOrder(entry);
+            }
+            // Call match in case modify caused order to be matched
+            matchAndAdd(entry);
+        }
+
+    }
+
+
 
     public void cancelOrder(UUID id){
         OrderBookEntry removedOrder = orderMap.remove(id);
