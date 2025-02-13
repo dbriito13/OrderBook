@@ -44,8 +44,8 @@ class OrderBookTest {
     @Test
     void testHighLoadMatchingPerformance(){
         //Prefill the PriceLevel and OrderBookEntry pools
-        orderBook.prefillPriceLevelPool(1_000_000);
-        OrderBookEntryPool.prefillPool(1_000_000);
+        orderBook.prefillPriceLevelPool(1_200_000);
+        OrderBookEntryPool.prefillPool(1_200_000);
         List<GCStats> gcStatsBefore = getGCStats();
         System.out.println(gcStatsBefore);
         long startTime = System.nanoTime();
