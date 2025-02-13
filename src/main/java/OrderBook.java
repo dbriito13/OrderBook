@@ -10,7 +10,6 @@ public class OrderBook {
     private final TreeSet<PriceLevel> askBook; // Lowest Prices first
     private final Map<Long, OrderBookEntry> orderMap;
     private final Deque<PriceLevel> priceLevelPool;
-    // TODO: Test if TreeMap reduces GC pressure and faster lookups
 
     public OrderBook() {
         this.bidBook = new TreeSet<>(Comparator.reverseOrder());
@@ -28,7 +27,6 @@ public class OrderBook {
         }
         return priceLevel;
     }
-
 
     public void prefillPriceLevelPool(int num){
         for(int i = 0; i < num; i++){
@@ -87,8 +85,6 @@ public class OrderBook {
         }
 
     }
-
-
 
     public void cancelOrder(long id){
         OrderBookEntry removedOrder = orderMap.remove(id);

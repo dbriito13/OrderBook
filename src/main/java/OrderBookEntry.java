@@ -1,11 +1,6 @@
 import lombok.Getter;
 import lombok.Setter;
 
-
-import java.time.LocalDateTime;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
-
 @Getter
 @Setter
 public class OrderBookEntry {
@@ -13,7 +8,6 @@ public class OrderBookEntry {
     private double quantity; // quantity can't be final as it will be reduced when matching algorithm works
     private OrderType orderType;
     private Side side;
-    private final LocalDateTime timestamp;
     private PriceLevel priceLevel;
     private long orderId;
 
@@ -22,7 +16,6 @@ public class OrderBookEntry {
         this.price = price;
         this.side = side;
         this.orderType = orderType;
-        this.timestamp = LocalDateTime.now();
         this.orderId = orderId;
     }
 

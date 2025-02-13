@@ -44,11 +44,10 @@ class OrderBookTest {
     @Test
     void testHighLoadMatchingPerformance(){
         //Prefill the PriceLevel and OrderBookEntry pools
-        orderBook.prefillPriceLevelPool(1_200_000);
-        OrderBookEntryPool.prefillPool(1_200_000);
-        List<GCStats> gcStatsBefore = getGCStats();
-        System.out.println(gcStatsBefore);
+        orderBook.prefillPriceLevelPool(1_500_000);
+        OrderBookEntryPool.prefillPool(1_500_000);
         long startTime = System.nanoTime();
+        List<GCStats> gcStatsBefore = getGCStats();
         for(int i = 1; i <= NUM_ORDERS; i++){
             orderBook.addOrder(100.0, 1.0, Side.BUY, OrderType.LIMIT); // Prices vary between 100-109
         }
