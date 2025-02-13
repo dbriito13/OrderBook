@@ -1,14 +1,14 @@
 import lombok.Getter;
-import sun.reflect.generics.tree.Tree;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Getter
 public class OrderBook {
 
     private final TreeSet<PriceLevel> bidBook; // Highest Prices first
     private final TreeSet<PriceLevel> askBook; // Lowest Prices first
-    private final Map<UUID, OrderBookEntry> orderMap;
+    private final Map<Long, OrderBookEntry> orderMap;
     private final Deque<PriceLevel> priceLevelPool;
     // TODO: Test if TreeMap reduces GC pressure and faster lookups
 
@@ -32,13 +32,14 @@ public class OrderBook {
 
     public void prefillPriceLevelPool(int num){
         for(int i = 0; i < num; i++){
-            PriceLevel level = new PriceLevel(new OrderBookEntry(1.0, 1.0, Side.SELL, OrderType.LIMIT));
+            PriceLevel level = new PriceLevel(new OrderBookEntry(1.0, 1.0, Side.SELL, OrderType.LIMIT, 0));
             priceLevelPool.offer(level);
         }
     }
 
     public void addOrder(double price, double quantity, Side side, OrderType orderType){
         OrderBookEntry entry = OrderBookEntryPool.get(price, quantity, side, orderType);
+        matchOrder(entry, entry.isBid() ? askBook: bidBook);
         matchAndAdd(entry);
     }
 
@@ -89,7 +90,7 @@ public class OrderBook {
 
 
 
-    public void cancelOrder(UUID id){
+    public void cancelOrder(long id){
         OrderBookEntry removedOrder = orderMap.remove(id);
         if (removedOrder != null){
             PriceLevel level = removedOrder.getPriceLevel();

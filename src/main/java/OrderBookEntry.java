@@ -4,6 +4,7 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Getter
 @Setter
@@ -14,23 +15,23 @@ public class OrderBookEntry {
     private Side side;
     private final LocalDateTime timestamp;
     private PriceLevel priceLevel;
-    private UUID orderId;
+    private long orderId;
 
-    public OrderBookEntry(double price, double quantity, Side side, OrderType orderType) {
+    public OrderBookEntry(double price, double quantity, Side side, OrderType orderType, long orderId) {
         this.quantity = quantity;
         this.price = price;
         this.side = side;
         this.orderType = orderType;
         this.timestamp = LocalDateTime.now();
-        this.orderId = UUID.randomUUID();
+        this.orderId = orderId;
     }
 
-    public void reset(double price, double quantity, Side side, OrderType orderType){
+    public void reset(double price, double quantity, Side side, OrderType orderType, long orderId){
         this.price = price;
         this.quantity = quantity;
         this.side = side;
         this.orderType = orderType;
-        this.orderId = UUID.randomUUID();
+        this.orderId = orderId;
     }
 
     public boolean isBid(){
